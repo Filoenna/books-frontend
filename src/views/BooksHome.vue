@@ -1,7 +1,16 @@
 <template>
     <div class="container uk-margin-top">
-        <h1 class="uk-heading-medium">Books library</h1>
+        <h1 class="uk-heading-medium uk-text-primary">Books library</h1>
 
+        <button @click="openModal" class="uk-button uk-button-primary">
+            Add Book
+        </button>
+
+        <AddBookForm   
+            :bookToEdit="bookToEdit" 
+            @addBook="addNewBook"
+            @editBook="updateExistingBook"
+        />
         <!-- Loading state -->
         <div v-if="isLoading" class="uk-flex uk-flex-center uk-flex-middle uk-height-large">
             <span uk-spinner="ratio: 3"></span>
@@ -18,9 +27,12 @@
         </div>
 
         <!-- Books grid -->
-        <div v-else class="uk-grid uk-child-width-1-3@m uk-child-width-1-2@s" uk-grid>
+        <div v-else class="uk-grid uk-child-width-1-3@m uk-child-width-1-2@s uk-margin-large-top" uk-grid>
             <div v-for="book in books" :key="book.id" class="uk-margin-bottom">
                 <div class="uk-card uk-card-default uk-card-hover">
+                    <div class="uk-card-badge uk-background-default">
+                        <a @click="deleteBook(book.id)" class="uk-icon-button" uk-icon="trash"></a>
+                    </div>
                     <div class="uk-card-header">
                         <h3 class="uk-card-title">{{ book.title }}</h3>
                         <p class="uk-text-meta">{{ book.author }}</p>
@@ -39,7 +51,7 @@
                     <div class="uk-card-footer">
                         <button 
                             class="uk-button uk-button-primary" 
-                            @click="viewBookDetails(book.id)"
+                            @click="openModal(book)"
                         >
                             View Details
                         </button>
@@ -57,32 +69,80 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import bookService from '../services/bookService';
-import type { Book } from '../types/Book';
+import { ref, onMounted } from 'vue'
+import UIkit from "uikit"
+import AddBookForm from './AddBookForm.vue'
+import bookService from '../services/api.bookService'
+import type { Book } from '../types/Book'
 
 //State
-const books = ref<Book[]>([]);
-const isLoading = ref<boolean>(true);
-const error = ref<string | null>(null);
+const books = ref<Book[]>([])
+const isLoading = ref<boolean>(true)
+const error = ref<string | null>(null)
+const bookToEdit = ref<Partial<Book> | null>(null)
 
-// Load book when component mounts
-onMounted(async () => {
+const fetchBooks = async () => {
     try {
         isLoading.value = true;
-        books.value = await bookService.getBooks();
+        books.value = await bookService.getBooks()
     } catch (err) {
-        error.value = 'Failed to load books';
-        console.error(err);
+        error.value = 'Failed to load books'
+        console.error(err)
     } finally {
-        isLoading.value = false;
+        isLoading.value = false
     }
+};
+// Load book when component mounts
+onMounted(async () => {
+    fetchBooks()
 });
 
-//Function to navigate to book details
-const viewBookDetails = (bookId: number) => {
-    console.log('Viewing book details', bookId);
+// Function to open modal
+const openModal = (book: Book | null = null) => {
+    bookToEdit.value = book
+    UIkit.modal("#add-book-modal").show()
+}
+
+const addNewBook = async (newBook: Book) => {
+    try {
+        isLoading.value = true
+        const addedBook = await bookService.addBook(newBook)
+        fetchBooks()
+        UIkit.modal("#add-book-modal").hide()
+    } catch (err) {
+        error.value = 'Failed to add book'
+        console.error(err)
+    } finally {
+        isLoading.value = false
+    }
+}
+
+const deleteBook = async (bookId: number) => {
+    try {
+        isLoading.value = true
+        await bookService.deleteBook(bookId)
+        fetchBooks()
+    } catch (err) {
+        error.value = 'Failed to delete book'
+        console.error(err)
+    } finally {
+        isLoading.value = false
+    }
 };
+
+const updateExistingBook = async (updatedBook: Book) => {
+    try {
+        isLoading.value = true;
+        await bookService.updateBook(updatedBook.id, updatedBook)
+        fetchBooks()
+        UIkit.modal("#add-book-modal").hide()
+    } catch (err) {
+        error.value = 'Failed to update book'
+        console.error(err)
+    } finally {
+        isLoading.value = false
+    }
+}
 </script>
 
 

@@ -1,14 +1,20 @@
-FROM node:lts-alpine
+FROM node:lts-alpine AS build
 
 # Install pnpm
 RUN npm install -g pnpm
 
 WORKDIR /app
 
-# We'll mount the app directory as a volume, but we won't try to install
-# dependencies during build time
+COPY . .
 
-EXPOSE 5173
+RUN pnpm install 
+RUN pnpm build
 
-# Use this command which will run pnpm install first, then start the dev server
-CMD ["sh", "-c", "pnpm install && pnpm run dev -- --host 0.0.0.0"]
+FROM nginx:alpine
+
+COPY --from=build /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
