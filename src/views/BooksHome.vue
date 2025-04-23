@@ -2,8 +2,8 @@
     <div class="container uk-margin-top">
         <h1 class="uk-heading-medium uk-text-primary">Books library</h1>
 
-        <button @click="openModal" class="uk-button uk-button-primary">
-            Add Book
+        <button @click="openModal(null)" class="uk-button uk-button-primary">
+            Add Book {{ bookToEdit }}
         </button>
 
         <AddBookForm   
@@ -99,7 +99,8 @@ onMounted(async () => {
 
 // Function to open modal
 const openModal = (book: Book | null = null) => {
-    bookToEdit.value = book
+    console.log(book)
+    bookToEdit.value = book ? { ...book } : null;
     UIkit.modal("#add-book-modal").show()
 }
 
@@ -141,6 +142,7 @@ const updateExistingBook = async (updatedBook: Book) => {
         console.error(err)
     } finally {
         isLoading.value = false
+        bookToEdit.value = null // Reset bookToEdit after update
     }
 }
 </script>

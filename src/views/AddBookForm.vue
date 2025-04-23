@@ -1,7 +1,7 @@
 <template>
     <div id="add-book-modal" uk-modal>
         <div class="uk-modal-dialog uk-modal-body">
-            <h2 class="uk-modal-title">{{ isEditMode ? 'Edit Book' : 'Add New Book' }}</h2>
+            <h2 class="uk-modal-title">{{ isEditMode ? 'Edit Book' : 'Add New Book' }} {{ isEditMode }} {{ bookToEdit }} </h2> 
             <form @submit.prevent="submitForm" class="uk-form-stacked">
                 <div class="uk-margin">
                     <label class="uk-form-label" for="title">Title</label>
@@ -52,7 +52,7 @@ const form = ref<Partial<Book>>({
     year: undefined,
 });
 
-const isEditMode = computed(() => props.bookToEdit !== null)
+const isEditMode = computed(() => props.bookToEdit !== undefined && props.bookToEdit !== null);
 
 watch(
     () => props.bookToEdit,

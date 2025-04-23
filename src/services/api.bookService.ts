@@ -17,17 +17,6 @@ const bookService = {
     }
   },
 
-  // // Get a single book by ID
-  // async getBook(id: number): Promise<Book> {
-  //   try {
-  //     const response = await axios.get(`${apiUrl}/books/${id}`);
-  //     return response.data;
-  //   } catch (error) {
-  //     console.error(`Error fetching book ${id}:`, error);
-  //     throw error;
-  //   }
-  // },
-
   // Create a new book
   async addBook(book: Omit<Book, "id">): Promise<Book> {
     try {
