@@ -99,7 +99,6 @@ onMounted(async () => {
 
 // Function to open modal
 const openModal = (book: Book | null = null) => {
-    console.log(book)
     bookToEdit.value = book ? { ...book } : null;
     UIkit.modal("#add-book-modal").show()
 }

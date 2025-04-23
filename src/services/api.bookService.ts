@@ -41,8 +41,9 @@ const bookService = {
 
   // Update a book by ID
   async updateBook(id: number, book: Partial<Book>): Promise<Book> {
+    console.log(id)
     try {
-      const response = await api.put(`/books/${id}`, book);
+      const response = await api.patch(`/books/${id}`, book);
       return response.data;
     } catch (error) {
       console.error(`Error updating book ${id}:`, error);

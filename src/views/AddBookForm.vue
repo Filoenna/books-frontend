@@ -1,7 +1,7 @@
 <template>
     <div id="add-book-modal" uk-modal>
         <div class="uk-modal-dialog uk-modal-body">
-            <h2 class="uk-modal-title">{{ isEditMode ? 'Edit Book' : 'Add New Book' }} {{ isEditMode }} {{ bookToEdit }} </h2> 
+            <h2 class="uk-modal-title">{{ isEditMode ? 'Edit Book' : 'Add New Book' }}</h2> 
             <form @submit.prevent="submitForm" class="uk-form-stacked">
                 <div class="uk-margin">
                     <label class="uk-form-label" for="title">Title</label>
@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, watch } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 import type { Book } from '@/types/Books'
 
@@ -52,6 +52,8 @@ const form = ref<Partial<Book>>({
     year: undefined,
 });
 
+const originalBook = ref<Partial<Book> | null>(null);
+
 const isEditMode = computed(() => props.bookToEdit !== undefined && props.bookToEdit !== null);
 
 watch(
@@ -59,6 +61,7 @@ watch(
     (newVal) => {
         if (newVal) {
             form.value = { ...newVal }; // clone to avoid mutating prop
+            originalBook.value = { ...newVal }; // store original book for comparison
         } else {
             // reset form when switching from edit to add
             form.value = {
@@ -73,9 +76,26 @@ watch(
     { immediate: true }
 );
 
+const getChangedFields = () => {
+    const changedFields: Partial<Book> = {};
+    for (const key in form.value) {
+        if (form.value[key] !== originalBook.value?.[key]) {
+            changedFields[key] = form.value[key];
+        }
+    }
+    return changedFields;
+}
+
 const submitForm = () => {
     if (isEditMode.value) {
-        emit('editBook', form.value);
+        const changedFields = getChangedFields();
+        if (Object.keys(changedFields).length === 0) {
+            UIkit.modal('#add-book-modal').hide();
+            return; // No changes made, just close the modal
+        }
+        console.log('Changed fields:', changedFields);
+        changedFields.id = originalBook.value?.id; // Ensure the ID is included for editing
+        emit('editBook', changedFields);
     } else {
         emit('addBook', form.value);
     }
